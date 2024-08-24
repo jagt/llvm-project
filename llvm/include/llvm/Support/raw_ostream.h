@@ -468,6 +468,7 @@ class raw_fd_ostream : public raw_pwrite_stream {
 
   uint64_t pos = 0;
 
+protected:
   /// See raw_ostream::write_impl.
   void write_impl(const char *Ptr, size_t Size) override;
 

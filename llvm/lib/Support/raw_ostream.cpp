@@ -905,13 +905,52 @@ raw_fd_ostream &llvm::outs() {
   return S;
 }
 
+#ifdef _WIN32
+class debug_raw_fd_stream : public raw_fd_ostream
+{
+  using raw_fd_ostream::raw_fd_ostream;
+
+  static constexpr size_t DebugBufLen = 1024 * 16;
+  char DebugBuf[DebugBufLen];
+
+  inline void CopyToDebugOutput(const char* Ptr, size_t Size)
+  {
+    if (::IsDebuggerPresent())
+    {
+      size_t outputLen = std::min(Size, DebugBufLen-1);
+      std::memcpy(DebugBuf, Ptr, outputLen);
+      DebugBuf[outputLen] = '\0';
+      ::OutputDebugStringA(DebugBuf);
+    }
+  }
+
+  void write_impl(const char *Ptr, size_t Size) override
+  {
+    CopyToDebugOutput(Ptr, Size);
+    raw_fd_ostream::write_impl(Ptr, Size);
+  }
+
+  void pwrite_impl(const char *Ptr, size_t Size, uint64_t Offset) override
+  {
+    CopyToDebugOutput(Ptr, Size);
+    raw_fd_ostream::pwrite_impl(Ptr, Size, Offset);
+  }
+};
+#endif
+
 raw_fd_ostream &llvm::errs() {
   // Set standard error to be unbuffered and tied to outs() by default.
 #ifdef __MVS__
   std::error_code EC = enableAutoConversion(STDERR_FILENO);
   assert(!EC);
 #endif
+
+#ifdef _WIN32
+  static debug_raw_fd_stream S(STDERR_FILENO, false, true);
+#else
   static raw_fd_ostream S(STDERR_FILENO, false, true);
+#endif
+
   return S;
 }
 
