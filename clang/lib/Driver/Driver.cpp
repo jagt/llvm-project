@@ -49,6 +49,7 @@
 #include "ToolChains/WebAssembly.h"
 #include "ToolChains/XCore.h"
 #include "ToolChains/ZOS.h"
+#include "ToolChains/Zipline.h"
 #include "clang/Basic/TargetID.h"
 #include "clang/Basic/Version.h"
 #include "clang/Config/config.h"
@@ -6286,6 +6287,14 @@ const ToolChain &Driver::getToolChain(const ArgList &Args,
       TC = std::make_unique<toolchains::AMDGPUToolChain>(*this, Target, Args);
       break;
     case llvm::Triple::Win32:
+
+      /// Zipline test
+      if (Args.hasArg(options::OPT_zipline))
+      {
+        TC = std::make_unique<toolchains::ZiplineToolChain>(*this, Target, Args);
+        break;
+      }
+
       switch (Target.getEnvironment()) {
       default:
         if (Target.isOSBinFormatELF())

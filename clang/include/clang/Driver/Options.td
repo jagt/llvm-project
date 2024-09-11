@@ -6244,6 +6244,24 @@ defm devirtualize : BooleanFFlag<"devirtualize">, Group<clang_ignored_gcc_optimi
 defm devirtualize_speculatively : BooleanFFlag<"devirtualize-speculatively">,
     Group<clang_ignored_gcc_optimization_f_Group>;
 
+def fuse_simple_log : Flag<["-"], "fuse-simple-log">,
+                      Group<f_Group>, Flags<[NoXarchOption]>;
+defm use_debug_simple_log : BooleanFFlag<"use-debug-simple-log">,
+                            Group<f_Group>, Flags<[NoXarchOption]>;
+defm use_error_simple_log : BooleanFFlag<"use-error-simple-log">,
+                            Group<f_Group>, Flags<[NoXarchOption]>;
+defm use_info_simple_log : BooleanFFlag<"use-info-simple-log">,
+                           Group<f_Group>, Flags<[NoXarchOption]>;
+// simple log path
+def fsimple_log_path_EQ : Joined<["-"], "fsimple-log-path=">,
+                          Group<f_Group>, Flags<[NoXarchOption]>;
+def fuse_simple_log_EQ : Joined<["-"], "fuse-simple-log=">,
+                         Group<f_Group>, Flags<[NoXarchOption]>;
+
+// zipline toolchain
+def zipline : Flag<["-", "--"], "zipline">, Flags<[NoXarchOption]>;
+
+
 // Generic gfortran options.
 def A_DASH : Joined<["-"], "A-">, Group<gfortran_Group>;
 def static_libgfortran : Flag<["-"], "static-libgfortran">, Group<gfortran_Group>;

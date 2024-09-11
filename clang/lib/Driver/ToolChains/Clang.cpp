@@ -7519,6 +7519,64 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
                        options::OPT_mno_amdgpu_ieee);
   }
 
+
+  struct SimpleLogOpts {
+    bool Debug = false,
+         Error = false,
+         Info = false;
+
+    static inline SimpleLogOpts All() {
+      return {true, true, true};
+    }
+
+    // if any of the level is enabled
+    inline operator bool() const {
+      return Debug || Error || Info;
+    }
+  };
+  SimpleLogOpts SLG;
+
+  // By default turn on all the simple log features
+  if (Args.hasArg(options::OPT_fuse_simple_log,
+                  options::OPT_fuse_simple_log_EQ)) {
+    SLG = SimpleLogOpts::All();
+  }
+  // Debug simple log
+  SLG.Debug = Args.hasFlag(options::OPT_fuse_debug_simple_log,
+                           options::OPT_fno_use_debug_simple_log,
+                           SLG.Debug);
+  // Error simple log
+  SLG.Error = Args.hasFlag(options::OPT_fuse_error_simple_log,
+                           options::OPT_fno_use_error_simple_log,
+                           SLG.Error);
+  // Info simple log
+  SLG.Info = Args.hasFlag(options::OPT_fuse_info_simple_log,
+                          options::OPT_fno_use_info_simple_log,
+                          SLG.Info);
+  if (SLG) {
+    // include `simple_log.h` implicitly
+    CmdArgs.push_back("-include");
+    // resolve path of `simple_log.h`
+    if (Arg *A = Args.getLastArg(options::OPT_fuse_simple_log_EQ,
+                                 options::OPT_fsimple_log_path_EQ))
+      CmdArgs.push_back(A->getValue());
+    else
+      CmdArgs.push_back("simple_log.h");
+
+    if (SLG.Debug) {
+      CmdArgs.push_back("-D");
+      CmdArgs.push_back("SLG_ENABLE_DEBUG");
+    }
+    if (SLG.Error) {
+      CmdArgs.push_back("-D");
+      CmdArgs.push_back("SLG_ENABLE_ERROR");
+    }
+    if (SLG.Info) {
+      CmdArgs.push_back("-D");
+      CmdArgs.push_back("SLG_ENABLE_INFO");
+    }
+  }
+
   // For all the host OpenMP offloading compile jobs we need to pass the targets
   // information using -fopenmp-targets= option.
   if (JA.isHostOffloading(Action::OFK_OpenMP)) {
